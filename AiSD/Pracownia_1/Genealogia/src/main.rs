@@ -1,34 +1,28 @@
 use std::io;
 
-fn tree_pre_procces(tree_vec: &Vec<(i32,i32)>, in_out_time:&mut Vec<(i32,i32)>, child_idx: Vec<(i32, i32)>, root: i32, time: i32)->i32{
-    println!("DFS root- {}",root);
-    println!("in_time - {}", time);
-    println!("in_out_time");
-    println!("{:?}", in_out_time);
-    let i = tree_vec.iter().position(|&x| x.0 == root);
-    
-    if child_idx[root as usize - 1] == (0,0){
+fn tree_pre_procces(tree_vec: &Vec<(i32,i32)>, in_out_time:&mut Vec<(i32,i32)>, child_idx: Vec<i32>, root: i32, time: i32)->i32{
+    //println!("DFS root- {}",root);
+    //println!("in_time - {}", time);
+    //println!("in_out_time");
+    //println!("{:?}", in_out_time);
+    if child_idx[root as usize - 1] == -1 {
         in_out_time[root as usize - 1] = (time, time);
         return time;
     }
-    /*if i==None{
-        in_out_time[root as usize - 1] = (time, time);
-        return time;
-    }*/
-    let mut i = i.unwrap();
-    println!("i - {}",i);
+    let mut i = child_idx[root as usize - 1] as usize;//i.unwrap();
+    //println!("i - {}",i);
     let in_time = time;
     let mut out_time = time;
     
-    while i < tree_vec.len() && tree_vec[i].0==root{
-        println!("DFS child- {}",tree_vec[i].1);
+    while i < tree_vec.len() && tree_vec[i].0 == root{
+        //println!("DFS child- {}",tree_vec[i].1);
         out_time = tree_pre_procces(tree_vec, in_out_time, child_idx.clone(), tree_vec[i].1, out_time + 1);
-        println!("out_time - {}", out_time);
+        //println!("out_time - {}", out_time);
         i+=1;
     }
     in_out_time[root as usize - 1] = (in_time, out_time);
     
-    println!("out_time - {}", time);
+    //println!("out_time - {}", time);
     out_time
 }
 
@@ -45,32 +39,29 @@ fn main() {
     let n = input[0];
     let m = input[1];
     let mut tree_vec: Vec<(i32,i32)> = Vec::new();
-    //tree_vec.push((0,1));
     //Tree input
     for i in 1..n{
         let mut input = String::new();
         std::io::stdin().read_line(&mut input).unwrap();
         tree_vec.push((input.trim().parse().unwrap(), i+1));
     }
-    println!("{:?}", tree_vec);
+    //println!("{:?}", tree_vec);
     tree_vec.sort_by(|a, b| a.0.cmp(&b.0));
-    let mut child_idx = vec![(0,0);n as usize];
+    //fill child_idx array
+    let mut child_idx = vec![-1; n as usize];
     let mut curr_father = 1;
-    let mut start_idx = 0;
+    child_idx[0] = 0;
     for i in 0..n-1{
         if tree_vec[i as usize].0 != curr_father{
-            child_idx[curr_father as usize - 1] = (start_idx, i-1 as i32);
-            start_idx = i;
             curr_father = tree_vec[i as usize].0;
+            child_idx[curr_father as usize - 1] = i;
         }
-        println!("child_idx : {:?}", child_idx)
     }
-    child_idx[curr_father as usize - 1] = (start_idx, n-2);
-    println!("child_idx : {:?}", child_idx);
+    //println!("child_idx : {:?}", child_idx);
     
     let mut in_out_time: Vec<(i32,i32)> = vec![(0,0);n as usize];
     tree_pre_procces(&tree_vec, &mut in_out_time, child_idx.clone(), 1, 1);
-    println!("in_out_time {:?}", in_out_time);
+    //println!("in_out_time {:?}", in_out_time);
     //Query
     let mut query: Vec<(i32,i32)> = vec![(0,0);m as usize];
     for i in 0..m{
@@ -83,8 +74,9 @@ fn main() {
             println!("NIE");
         }
     }
-    println!("Query {:?}", query);
+    //println!("Query {:?}", query);
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -96,17 +88,17 @@ mod tests {
         let query = vec![(1,2),(2,1),(1,4),(2,5)];
         let n = 5;
         let mut in_out_time: Vec<(i32,i32)> = vec![(0,0);n as usize];
-        let mut child_idx = vec![(0,0);n as usize];
+        //fill child_idx array
+        let mut child_idx = vec![-1; n as usize];
         let mut curr_father = 1;
-        let mut start_idx = 0;
+        child_idx[0] = 0;
         for i in 0..n-1{
             if tree_input[i as usize].0 != curr_father{
-                child_idx[curr_father as usize - 1] = (start_idx, i-1 as i32);
-                start_idx = i;
                 curr_father = tree_input[i as usize].0;
+                child_idx[curr_father as usize - 1] = i;
             }
         }
-        child_idx[curr_father as usize - 1] = (start_idx, n-2);
+        println!("child_idx : {:?}", child_idx);
 
         tree_pre_procces(&tree_input, &mut in_out_time, child_idx.clone(),1, 1);
         assert_eq!(in_out_time.clone(), vec![(1,5), (2,2), (3,5), (4,4), (5,5)]);
@@ -121,21 +113,45 @@ mod tests {
         let tree_input = vec![(1,2)];
         let query = vec![(1,2),(2,1)];
         let mut in_out_time: Vec<(i32,i32)> = vec![(0,0);n as usize];
-        let mut child_idx = vec![(0,0);n as usize];
+        //fill child_idx array
+        let mut child_idx = vec![-1; n as usize];
         let mut curr_father = 1;
-        let mut start_idx = 0;
+        child_idx[0] = 0;
         for i in 0..n-1{
             if tree_input[i as usize].0 != curr_father{
-                child_idx[curr_father as usize - 1] = (start_idx, i-1 as i32);
-                start_idx = i;
                 curr_father = tree_input[i as usize].0;
+                child_idx[curr_father as usize - 1] = i;
             }
         }
-        child_idx[curr_father as usize - 1] = (start_idx, n-2);
         println!("child_idx : {:?}", child_idx);
+
         tree_pre_procces(&tree_input, &mut in_out_time, child_idx.clone(), 1, 1);
         assert_eq!(in_out_time.clone(), vec![(1,2), (2,2)]);
         assert_eq!(is_ancestor(in_out_time.clone(), query[0]), true);
         assert_eq!(is_ancestor(in_out_time.clone(), query[1]), false);
     }
+    #[test]
+    fn test_c(){
+        let n = 3;
+        let tree_input = vec![(1,3),(3,2)];
+        let query = vec![(1,2),(2,1)];
+        let mut in_out_time: Vec<(i32,i32)> = vec![(0,0);n as usize];
+        //fill child_idx array
+        let mut child_idx = vec![-1; n as usize];
+        let mut curr_father = 1;
+        child_idx[0] = 0;
+        for i in 0..n-1{
+            if tree_input[i as usize].0 != curr_father{
+                curr_father = tree_input[i as usize].0;
+                child_idx[curr_father as usize - 1] = i;
+            }
+        }
+        println!("child_idx : {:?}", child_idx);
+
+        /*tree_pre_procces(&tree_input, &mut in_out_time, child_idx.clone(), 1, 1);
+        assert_eq!(in_out_time.clone(), vec![(1,2), (2,2)]);
+        assert_eq!(is_ancestor(in_out_time.clone(), query[0]), true);
+        assert_eq!(is_ancestor(in_out_time.clone(), query[1]), false);*/
+    }
 }
+ 
