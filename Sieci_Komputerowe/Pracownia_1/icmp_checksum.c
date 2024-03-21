@@ -1,7 +1,4 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "icmp_checksum.h"
 
 u_int16_t compute_icmp_checksum (const void *buff, int length)
 {
